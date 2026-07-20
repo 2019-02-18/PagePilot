@@ -162,7 +162,7 @@ export default function BatchManagement() {
               </div>
               <div className="form-group">
                 <label>体检项目<span className="required">*</span></label>
-                <div className="checkbox-group">
+                <div className="checkbox-group" data-pagepilot-field="items-checkbox">
                   {examItems.map((item) => (
                     <label key={item}>
                       <input type="checkbox" checked={form.items.includes(item)} onChange={() => toggleItem(item)} />

@@ -74,8 +74,8 @@
         { "order": 6, "action": "click", "target": "[data-pagepilot-action='generate-recheck']", "description": "点击生成复查名单" }
       ],
       "params": [
-        { "name": "grade", "label": "年级", "type": "select", "required": true, "options": ["一年级", "二年级", "三年级", "四年级", "五年级", "六年级", "初一", "初二", "初三"] },
-        { "name": "abnormalType", "label": "异常指标", "type": "select", "required": true, "options": ["视力", "身高体重", "血压", "龋齿"] },
+        { "name": "grade-filter", "label": "年级", "type": "select", "required": true, "options": ["一年级", "二年级", "三年级", "四年级", "五年级", "六年级", "初一", "初二", "初三"] },
+        { "name": "abnormal-filter", "label": "异常指标", "type": "select", "required": true, "options": ["视力", "身高体重", "血压", "龋齿"] },
         { "name": "sendNotification", "label": "是否发送通知", "type": "select", "required": false, "options": ["否", "是"] }
       ]
     }

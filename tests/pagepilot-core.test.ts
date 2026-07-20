@@ -75,8 +75,8 @@ describe('OfflineDemoEngine - Demo Flow 2: 筛选异常学生生成复查名单'
     const result = offline.matchIntent('筛选三年级视力异常的学生生成复查名单')
     expect(result).not.toBeNull()
     expect(result!.workflow.id).toBe('screen-abnormal-recheck')
-    expect(result!.params.grade).toBe('三年级')
-    expect(result!.params.abnormalType).toBe('视力')
+    expect(result!.params['grade-filter']).toBe('三年级')
+    expect(result!.params['abnormal-filter']).toBe('视力')
   })
 
   it('builds plan with navigate, select, click, observe steps', () => {
