@@ -1,0 +1,179 @@
+{
+  "version": "1.0.0",
+  "meta": {
+    "id": "health-exam-admin",
+    "name": "中小学生健康体检管理后台",
+    "description": "面向 K-12 学生健康体检的管理后台系统，覆盖体检任务管理、数据明细、异常筛查、复查名单等核心功能",
+    "match": {
+      "metaTag": {
+        "name": "pagepilot-site",
+        "content": "health-exam-admin"
+      }
+    }
+  },
+  "system": {
+    "name": "中小学生健康体检管理后台",
+    "modules": [
+      "体检任务管理",
+      "体检数据明细",
+      "异常指标筛查",
+      "复查名单管理"
+    ],
+    "navigation": [
+      { "label": "首页", "path": "/dashboard" },
+      { "label": "体检任务管理", "path": "/batch" },
+      {
+        "label": "体检数据",
+        "children": [
+          { "label": "数据明细", "path": "/data-detail" }
+        ]
+      },
+      { "label": "异常筛查", "path": "/abnormal-screening" },
+      { "label": "复查名单", "path": "/recheck-list" }
+    ],
+    "forbiddenActions": [
+      "删除体检数据",
+      "覆盖历史档案",
+      "批量删除学生记录",
+      "批量发送通知"
+    ]
+  },
+  "workflows": [
+    {
+      "id": "create-exam-batch",
+      "name": "创建体检任务",
+      "description": "在体检任务管理页面新建一个体检批次，包含学校、年级、班级范围、日期和体检项目",
+      "steps": [
+        { "order": 1, "action": "navigate", "target": "/batch", "description": "导航到体检任务管理页面" },
+        { "order": 2, "action": "click", "target": "[data-pagepilot-action='new-batch']", "description": "点击「新建批次」按钮" },
+        { "order": 3, "action": "select", "target": "[data-pagepilot-field='school']", "description": "选择学校" },
+        { "order": 4, "action": "select", "target": "[data-pagepilot-field='grade']", "description": "选择年级" },
+        { "order": 5, "action": "fill", "target": "[data-pagepilot-field='classRange']", "description": "填写班级范围" },
+        { "order": 6, "action": "fill", "target": "[data-pagepilot-field='date']", "description": "设置体检日期" },
+        { "order": 7, "action": "click", "target": "[data-pagepilot-field='items-checkbox']", "description": "勾选体检项目" },
+        { "order": 8, "action": "click", "target": "[data-pagepilot-action='save-batch']", "description": "点击保存" }
+      ],
+      "params": [
+        { "name": "school", "label": "学校", "type": "select", "required": true, "options": ["阳光小学", "明德小学", "育才中学", "实验中学", "第一中学"] },
+        { "name": "grade", "label": "年级", "type": "select", "required": true, "options": ["一年级", "二年级", "三年级", "四年级", "五年级", "六年级", "初一", "初二", "初三"] },
+        { "name": "classRange", "label": "班级范围", "type": "string", "required": true },
+        { "name": "date", "label": "体检日期", "type": "date", "required": true },
+        { "name": "items", "label": "体检项目", "type": "checkbox-group", "required": true, "options": ["视力", "身高体重", "血压", "龋齿", "脊柱", "肺活量", "血常规"] }
+      ]
+    },
+    {
+      "id": "screen-abnormal-recheck",
+      "name": "筛选异常学生并生成复查名单",
+      "description": "在体检数据明细页面按年级和异常指标筛选异常学生，然后生成复查名单",
+      "steps": [
+        { "order": 1, "action": "navigate", "target": "/data-detail", "description": "导航到体检数据明细页面" },
+        { "order": 2, "action": "select", "target": "[data-pagepilot-field='grade-filter']", "description": "设置年级筛选条件" },
+        { "order": 3, "action": "select", "target": "[data-pagepilot-field='abnormal-filter']", "description": "设置异常指标筛选条件" },
+        { "order": 4, "action": "click", "target": "[data-pagepilot-action='query']", "description": "点击查询" },
+        { "order": 5, "action": "read", "target": "[data-pagepilot-table='exam-data']", "description": "读取筛选结果列表" },
+        { "order": 6, "action": "click", "target": "[data-pagepilot-action='generate-recheck']", "description": "点击生成复查名单" }
+      ],
+      "params": [
+        { "name": "grade", "label": "年级", "type": "select", "required": true, "options": ["一年级", "二年级", "三年级", "四年级", "五年级", "六年级", "初一", "初二", "初三"] },
+        { "name": "abnormalType", "label": "异常指标", "type": "select", "required": true, "options": ["视力", "身高体重", "血压", "龋齿"] },
+        { "name": "sendNotification", "label": "是否发送通知", "type": "select", "required": false, "options": ["否", "是"] }
+      ]
+    }
+  ],
+  "entries": [
+    {
+      "id": "entry-create-batch",
+      "name": "创建体检任务",
+      "workflowId": "create-exam-batch",
+      "keywords": ["创建", "新建", "体检任务", "安排体检", "新增批次"]
+    },
+    {
+      "id": "entry-screen-abnormal",
+      "name": "筛选异常学生",
+      "workflowId": "screen-abnormal-recheck",
+      "keywords": ["筛选", "异常", "视力", "复查", "名单", "筛出"]
+    }
+  ],
+  "pages": [
+    {
+      "route": "/dashboard",
+      "name": "首页仪表盘",
+      "capabilities": ["查看全局统计", "查看待办事项"],
+      "restrictions": ["不可编辑"]
+    },
+    {
+      "route": "/batch",
+      "name": "体检任务管理",
+      "capabilities": ["查看批次列表", "新建体检批次", "筛选批次"],
+      "restrictions": ["不可删除批次", "不可修改已完成批次"]
+    },
+    {
+      "route": "/data-detail",
+      "name": "体检数据明细",
+      "capabilities": ["查看学生体检数据", "按年级筛选", "按异常指标筛选", "生成复查名单"],
+      "restrictions": ["不可修改原始数据", "不可删除记录"]
+    },
+    {
+      "route": "/abnormal-screening",
+      "name": "异常筛查",
+      "capabilities": ["查看异常学生列表", "按年级和异常类型筛选", "查看异常统计"],
+      "restrictions": ["不可修改异常等级"]
+    },
+    {
+      "route": "/recheck-list",
+      "name": "复查名单",
+      "capabilities": ["查看复查名单", "导出名单", "发送复查通知"],
+      "restrictions": ["不可删除名单记录", "发送通知为高风险操作需确认"]
+    }
+  ],
+  "riskRules": [
+    {
+      "action": "filter-query",
+      "level": "low",
+      "handling": "auto",
+      "description": "筛选学生体检结果为低风险操作，可直接执行"
+    },
+    {
+      "action": "save-batch",
+      "level": "medium",
+      "handling": "confirm",
+      "description": "新建体检任务为中风险操作，展示计划后需用户确认"
+    },
+    {
+      "action": "generate-recheck",
+      "level": "medium",
+      "handling": "confirm",
+      "description": "生成复查名单为中风险操作，需二次确认"
+    },
+    {
+      "action": "export-data",
+      "level": "medium",
+      "handling": "confirm",
+      "description": "导出学生健康数据为中风险操作，需确认"
+    },
+    {
+      "action": "delete-data",
+      "level": "high",
+      "handling": "block",
+      "description": "删除或覆盖体检数据为高风险操作，禁止自动执行"
+    },
+    {
+      "action": "batch-notify",
+      "level": "high",
+      "handling": "block",
+      "description": "批量发送通知为高风险操作，禁止自动执行"
+    }
+  ],
+  "dataApis": [
+    { "id": "api-current-batch", "name": "当前体检批次", "purpose": "确定操作上下文", "status": "reserved" },
+    { "id": "api-student-info", "name": "学生基础信息", "purpose": "填充表单", "status": "reserved" },
+    { "id": "api-class-roster", "name": "班级学生名单", "purpose": "确定操作范围", "status": "reserved" },
+    { "id": "api-exam-results", "name": "体检结果数据", "purpose": "读取筛选结果", "status": "reserved" },
+    { "id": "api-abnormal-stats", "name": "异常指标统计", "purpose": "统计汇总", "status": "reserved" },
+    { "id": "api-recheck-count", "name": "待复查人数", "purpose": "结果验证", "status": "reserved" }
+  ],
+  "theme": {
+    "brandColor": "#0EA5B7",
+    "assistantPalette": "default"
+  }
+}
