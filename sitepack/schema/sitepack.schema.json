@@ -1,0 +1,333 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://pagepilot.dev/schemas/sitepack/v1.json",
+  "title": "PagePilot SitePack Configuration",
+  "description": "SitePack 配置文件的 JSON Schema，定义框架与业务解耦的配置契约",
+  "type": "object",
+  "required": ["version", "meta", "system", "workflows", "entries", "pages", "riskRules"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "SitePack Schema 版本号",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "meta": {
+      "type": "object",
+      "description": "SitePack 元信息",
+      "required": ["id", "name", "description", "match"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "唯一标识符",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "name": {
+          "type": "string",
+          "description": "站点名称"
+        },
+        "description": {
+          "type": "string",
+          "description": "站点描述"
+        },
+        "match": {
+          "type": "object",
+          "description": "宿主应用匹配规则",
+          "properties": {
+            "domain": {
+              "type": "string",
+              "description": "域名匹配"
+            },
+            "pathPrefix": {
+              "type": "string",
+              "description": "路径前缀匹配"
+            },
+            "metaTag": {
+              "type": "object",
+              "description": "页面 meta 标签匹配",
+              "required": ["name", "content"],
+              "properties": {
+                "name": { "type": "string" },
+                "content": { "type": "string" }
+              }
+            }
+          },
+          "anyOf": [
+            { "required": ["domain"] },
+            { "required": ["pathPrefix"] },
+            { "required": ["metaTag"] }
+          ]
+        }
+      }
+    },
+    "system": {
+      "type": "object",
+      "description": "系统说明（运行时指南）",
+      "required": ["name", "modules", "navigation", "forbiddenActions"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "系统名称"
+        },
+        "modules": {
+          "type": "array",
+          "description": "功能模块列表",
+          "items": { "type": "string" },
+          "minItems": 1
+        },
+        "navigation": {
+          "type": "array",
+          "description": "页面导航结构（菜单树）",
+          "items": { "$ref": "#/definitions/navNode" },
+          "minItems": 1
+        },
+        "forbiddenActions": {
+          "type": "array",
+          "description": "禁止自动执行的操作列表",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "workflows": {
+      "type": "array",
+      "description": "标准操作流程定义",
+      "items": { "$ref": "#/definitions/workflow" },
+      "minItems": 1
+    },
+    "entries": {
+      "type": "array",
+      "description": "产品入口（意图匹配入口）",
+      "items": { "$ref": "#/definitions/entry" },
+      "minItems": 1
+    },
+    "pages": {
+      "type": "array",
+      "description": "页面与能力声明",
+      "items": { "$ref": "#/definitions/pageDeclaration" },
+      "minItems": 1
+    },
+    "riskRules": {
+      "type": "array",
+      "description": "风险策略规则",
+      "items": { "$ref": "#/definitions/riskRule" },
+      "minItems": 1
+    },
+    "dataApis": {
+      "type": "array",
+      "description": "业务数据接口声明（预留）",
+      "items": { "$ref": "#/definitions/dataApi" }
+    },
+    "theme": {
+      "type": "object",
+      "description": "外观主题配置（预留）",
+      "properties": {
+        "brandColor": {
+          "type": "string",
+          "description": "品牌主色",
+          "pattern": "^#[0-9A-Fa-f]{6}$"
+        },
+        "assistantPalette": {
+          "type": "string",
+          "description": "助手界面配色方案"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "navNode": {
+      "type": "object",
+      "required": ["label"],
+      "properties": {
+        "label": {
+          "type": "string",
+          "description": "菜单项名称"
+        },
+        "path": {
+          "type": "string",
+          "description": "对应路由路径"
+        },
+        "children": {
+          "type": "array",
+          "description": "子菜单",
+          "items": { "$ref": "#/definitions/navNode" }
+        }
+      }
+    },
+    "workflow": {
+      "type": "object",
+      "required": ["id", "name", "description", "steps", "params"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "流程唯一标识",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "name": {
+          "type": "string",
+          "description": "流程名称"
+        },
+        "description": {
+          "type": "string",
+          "description": "流程描述"
+        },
+        "steps": {
+          "type": "array",
+          "description": "操作步骤",
+          "items": { "$ref": "#/definitions/workflowStep" },
+          "minItems": 1
+        },
+        "params": {
+          "type": "array",
+          "description": "流程参数",
+          "items": { "$ref": "#/definitions/workflowParam" }
+        }
+      }
+    },
+    "workflowStep": {
+      "type": "object",
+      "required": ["order", "action", "target", "description"],
+      "properties": {
+        "order": {
+          "type": "integer",
+          "description": "步骤序号",
+          "minimum": 1
+        },
+        "action": {
+          "type": "string",
+          "description": "操作类型",
+          "enum": ["navigate", "click", "fill", "select", "observe", "read"]
+        },
+        "target": {
+          "type": "string",
+          "description": "操作目标（选择器或路由）"
+        },
+        "description": {
+          "type": "string",
+          "description": "步骤描述"
+        }
+      }
+    },
+    "workflowParam": {
+      "type": "object",
+      "required": ["name", "label", "type", "required"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "参数标识"
+        },
+        "label": {
+          "type": "string",
+          "description": "参数显示名"
+        },
+        "type": {
+          "type": "string",
+          "description": "参数类型",
+          "enum": ["string", "select", "date", "checkbox-group"]
+        },
+        "required": {
+          "type": "boolean",
+          "description": "是否必填"
+        },
+        "options": {
+          "type": "array",
+          "description": "可选项（select/checkbox-group 类型）",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "entry": {
+      "type": "object",
+      "required": ["id", "name", "workflowId", "keywords"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "入口唯一标识"
+        },
+        "name": {
+          "type": "string",
+          "description": "入口名称"
+        },
+        "workflowId": {
+          "type": "string",
+          "description": "关联的标准流程 ID"
+        },
+        "keywords": {
+          "type": "array",
+          "description": "触发关键词",
+          "items": { "type": "string" },
+          "minItems": 1
+        }
+      }
+    },
+    "pageDeclaration": {
+      "type": "object",
+      "required": ["route", "name", "capabilities", "restrictions"],
+      "properties": {
+        "route": {
+          "type": "string",
+          "description": "页面路由"
+        },
+        "name": {
+          "type": "string",
+          "description": "页面名称"
+        },
+        "capabilities": {
+          "type": "array",
+          "description": "页面能力列表",
+          "items": { "type": "string" }
+        },
+        "restrictions": {
+          "type": "array",
+          "description": "页面限制列表",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "riskRule": {
+      "type": "object",
+      "required": ["action", "level", "handling", "description"],
+      "properties": {
+        "action": {
+          "type": "string",
+          "description": "操作标识"
+        },
+        "level": {
+          "type": "string",
+          "description": "风险等级",
+          "enum": ["low", "medium", "high"]
+        },
+        "handling": {
+          "type": "string",
+          "description": "处理方式",
+          "enum": ["auto", "confirm", "block"]
+        },
+        "description": {
+          "type": "string",
+          "description": "规则说明"
+        }
+      }
+    },
+    "dataApi": {
+      "type": "object",
+      "required": ["id", "name", "purpose", "status"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "接口标识"
+        },
+        "name": {
+          "type": "string",
+          "description": "接口名称"
+        },
+        "purpose": {
+          "type": "string",
+          "description": "接口用途"
+        },
+        "status": {
+          "type": "string",
+          "description": "接口状态",
+          "enum": ["active", "reserved"]
+        }
+      }
+    }
+  }
+}
