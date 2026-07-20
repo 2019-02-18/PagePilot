@@ -1,2 +1,8 @@
 export { PagePilotCore, pagePilot } from './PagePilot'
 export * from './types'
+export { PageUnderstandingEngine } from '../engine/PageUnderstandingEngine'
+export { ExecutionEngine } from '../engine/ExecutionEngine'
+export { VisualFeedback } from '../engine/VisualFeedback'
+export { TaskManager } from '../engine/TaskManager'
+export { SafetyEngine } from '../engine/SafetyEngine'
+export { OfflineDemoEngine } from '../engine/OfflineDemoEngine'
