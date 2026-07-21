@@ -13,36 +13,6 @@ import { TaskPanel } from './TaskPanel'
 import { SettingsPanel } from './SettingsPanel'
 import './AssistantWidget.css'
 
-function buildSuggestions(sitePack: SitePackConfig): { label: string; command: string }[] {
-  return sitePack.entries.map((entry) => {
-    const wf = sitePack.workflows.find((w) => w.id === entry.workflowId)
-    if (!wf) return { label: entry.name, command: entry.name }
-    const example = wf.params
-      .filter((p) => p.required && p.options)
-      .slice(0, 2)
-      .map((p) => p.options![0])
-      .join('')
-    return { label: entry.name, command: example ? `${entry.name}，${example}` : entry.name }
-  })
-}
-
-function buildExampleSentence(wf: { name: string; params: { label: string; options?: string[]; type: string }[] }): string {
-  const parts = wf.params
-    .filter((p) => p.options)
-    .slice(0, 3)
-    .map((p) => p.options![0])
-  return parts.length > 0 ? `${wf.name}，${parts.join('、')}` : wf.name
-}
-
-function buildCapabilityHint(sitePack: SitePackConfig): string {
-  const items = sitePack.entries.map((entry) => {
-    const wf = sitePack.workflows.find((w) => w.id === entry.workflowId)
-    const example = wf ? buildExampleSentence(wf) : entry.name
-    return `• ${entry.name}（如：${example}）`
-  })
-  return `我目前可以帮你：\n${items.join('\n')}\n\n你也可以问我系统有哪些功能。`
-}
-
 let understanding: PageUnderstandingEngine | null = null
 let execution: ExecutionEngine | null = null
 let feedback: VisualFeedback | null = null
@@ -157,7 +127,7 @@ export function AssistantWidget({ sitePack }: { sitePack: SitePackConfig }) {
       setTimeout(() => {
         addMessage({
           role: 'assistant',
-          content: `抱歉，我暂时无法理解「${input}」。\n\n${buildCapabilityHint(sitePack)}`,
+          content: `抱歉，我暂时无法理解「${input}」。\n\n我目前可以帮你：\n• 创建体检任务（如：帮阳光小学三年级创建体检任务）\n• 筛选异常学生生成复查名单（如：筛选三年级视力异常的学生）\n\n你也可以问我系统有哪些功能。`,
         })
       }, 400)
       return
@@ -174,7 +144,7 @@ export function AssistantWidget({ sitePack }: { sitePack: SitePackConfig }) {
       setTimeout(() => {
         addMessage({
           role: 'assistant',
-          content: `我理解你想「${workflow.name}」，但还需要以下信息：\n${paramHints.join('\n')}\n\n请补充完整，例如：「${buildExampleSentence(workflow)}」`,
+          content: `我理解你想「${workflow.name}」，但还需要以下信息：\n${paramHints.join('\n')}\n\n请补充完整，例如：${workflow.name === '创建体检任务' ? '"帮阳光小学三年级1-3班在7月25日创建体检任务，项目选视力和身高体重"' : '"筛选三年级视力异常的学生"'}`,
         })
       }, 400)
       return
@@ -183,7 +153,7 @@ export function AssistantWidget({ sitePack }: { sitePack: SitePackConfig }) {
     const plan = offline.buildPlan(match)
     understanding?.scan()
     await taskManager?.startTask(match.workflow.name, plan)
-  }, [addMessage, mode, offline, taskCtx, taskManager, understanding, sitePack])
+  }, [addMessage, mode, offline, taskCtx, taskManager, understanding])
 
   const handleRetry = useCallback(() => { taskManager?.retryStep() }, [])
   const handleSkip = useCallback(() => { taskManager?.skipStep() }, [])
@@ -241,9 +211,8 @@ export function AssistantWidget({ sitePack }: { sitePack: SitePackConfig }) {
                 <p>你好！我是 PagePilot 页面领航助手。</p>
                 <p>我可以帮你操作页面、查询信息。试试说：</p>
                 <div className="pp-suggestions">
-                  {buildSuggestions(sitePack).map((s) => (
-                    <button key={s.label} onClick={() => handleSend(s.command)}>{s.label}</button>
-                  ))}
+                  <button onClick={() => handleSend('帮阳光小学三年级创建体检任务')}>创建体检任务</button>
+                  <button onClick={() => handleSend('筛选三年级视力异常的学生生成复查名单')}>筛选异常学生</button>
                   <button onClick={() => handleSend('系统有哪些功能？')}>了解系统功能</button>
                 </div>
               </div>
